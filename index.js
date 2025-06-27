@@ -1,6 +1,5 @@
 const express = require('express')
 const app = express()
-const port = 3000
 var { Liquid } = require('liquidjs');
 var engine = new Liquid();
 const { verifyPoW, verifySignature } = require("./modules/pow.js");
@@ -58,6 +57,6 @@ app.post('/beacon/update', async (req, res) => {
   })
   res.send({ status: 'ok' });
 });
-const server = app.listen(port, () => {
+const server = app.listen(process.env.PORT || 3000, () => {
   console.log(`Beacon listening on port ${server.address().port}`)
 })
