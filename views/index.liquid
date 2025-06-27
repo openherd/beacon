@@ -1,0 +1,163 @@
+{% layout "parent.liquid" %}
+
+{% block content %}
+<style>
+  body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+
+  .main-container {
+    display: flex;
+    height: 100vh;
+  }
+
+  #map-container {
+    width: 60vw;
+    height: 100%;
+  }
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  #info-container {
+    width: 40vw;
+    padding: 20px;
+    background-color: #fff;
+    border-left: 1px solid #ddd;
+    overflow-y: auto;
+  }
+
+  #search-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box; 
+  }
+
+  #beacon-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  #beacon-list li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+  }
+
+  #beacon-list li:hover {
+    background-color: #f9f9f9;
+  }
+
+  #beacon-details {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+  }
+
+  .hidden {
+    display: none;
+  }
+</style>
+
+<div class="main-container">
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
+  <div id="info-container">
+    <input type="text" id="search-input" placeholder="Search Beacons...">
+    <h2>Beacon List</h2>
+    <ul id="beacon-list"></ul>
+    <div id="beacon-details" class="hidden">
+      <h3>Beacon Details</h3>
+      <p><strong>ID:</strong> <span id="beacon-id"></span></p>
+      <p><strong>Operator:</strong> <span id="beacon-operator"></span></p>
+      <p><strong>Notes:</strong> <span id="beacon-notes"></span></p>
+      <p><strong>Last Seen:</strong> <span id="beacon-last-seen"></span></p>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var lat = {{ lat }};
+    var lng = {{ lng }};
+    var map = L.map('map').setView([lat, lng], 5);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    var markers = L.markerClusterGroup();
+    var beaconsData = [];
+
+    fetch('/beacon/list')
+      .then(response => response.json())
+         .then(beacons => {
+        beaconsData = beacons;
+        populateBeaconList(beacons);
+        beacons.forEach(beacon => {
+          if (beacon.lat !== null && beacon.lng !== null) {
+            var marker = L.marker([beacon.lat, beacon.lng]);
+            marker.beacon = beacon;
+            marker.bindPopup(`<strong>ID:</strong> ${beacon.id}<br>
+                         <strong>Notes:</strong> ${beacon.notes || ''}<br>
+                         <strong>Last Seen:</strong> ${beacon.lastSeen || ''}<br>
+                         <strong>Operator:</strong> ${beacon.operator || ''}`);
+            marker.on('click', () => showBeaconDetails(beacon));
+            markers.addLayer(marker);
+          }
+        });
+        map.addLayer(markers);
+      })
+      .catch(err => {
+        console.error('Failed to load beacons:', err);
+      });
+
+    function populateBeaconList(beacons) {
+      const beaconList = document.getElementById('beacon-list');
+      beaconList.innerHTML = '';
+
+      beacons.forEach(beacon => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${beacon.nickname ? `${beacon.nickname} (${beacon.id})` : `${beacon.id}`}`;
+        listItem.addEventListener('click', () => showBeaconDetails(beacon));
+        beaconList.appendChild(listItem);
+      });
+    }
+
+    function showBeaconDetails(beacon) {
+      document.getElementById('beacon-id').textContent = beacon.id;
+      document.getElementById('beacon-notes').textContent = beacon.notes || 'N/A';
+      document.getElementById('beacon-last-seen').textContent = beacon.lastSeen || 'N/A';
+      document.getElementById('beacon-operator').textContent = beacon.operator || 'N/A';
+      document.getElementById('beacon-details').classList.remove('hidden');
+    }
+
+    document.getElementById('search-input').addEventListener('input', function(e) {
+      const searchTerm = e.target.value.toLowerCase();
+      const filteredBeacons = beaconsData.filter(beacon => {
+        return String(beacon.id).toLowerCase().includes(searchTerm) ||
+               (beacon.notes && beacon.notes.toLowerCase().includes(searchTerm));
+      });
+      populateBeaconList(filteredBeacons);
+    });
+  });
+</script>
+{% endblock %}

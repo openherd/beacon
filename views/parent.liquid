@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>OpenHerd Beacon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <title>OpenHerd Beacon</title>
+    <meta name="title" content="OpenHerd Beacon" />
+    <meta name="description" content="Here you can find OpenHerd relays near you" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://beacon.openherd.network" />
+    <meta property="og:title" content="OpenHerd Beacon" />
+    <meta property="og:description" content="Here you can find OpenHerd relays near you" />
+    <meta property="og:image" content="https://metatags.io/images/meta-tags.png" />
+
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://beacon.openherd.network" />
+    <meta property="twitter:title" content="OpenHerd Beacon" />
+    <meta property="twitter:description" content="Here you can find OpenHerd relays near you" />
+
+    <style>
+        :root {
+            font-family: Inter, sans-serif;
+            font-feature-settings: 'liga' 1, 'calt' 1;
+            /* fix for Chrome */
+        }
+
+        @supports (font-variation-settings: normal) {
+            :root {
+                font-family: InterVariable, sans-serif;
+            }
+        }
+    </style>
+    <script>
+        if (window.location.protocol !== 'https:' && window.location.hostname !== '127.0.0.1' && window.location.hostname !== 'localhost') {
+            window.location.replace('https:' + window.location.href.substring(window.location.protocol.length));
+        }
+    </script>
+</head>
+
+<body>
+    {% block content %}{% endblock %}
+</body>
+
+</html>
